@@ -89,8 +89,11 @@ func CreateInventoryRecord(tx *sql.Tx, inventory *Inventory) error {
 	return nil
 }
 
-func BuyInventory(tx *sql.Tx, employeeId, merchId int64, quantity int) error {
+func BuyInventory(tx *sql.Tx, employeeId, merchId int64 /*, quantity int*/) error {
 	env := "tables.inventory.GetInventory"
+
+	//is prepared make purchases in multiple copies
+	quantity := 1
 
 	record, err := GetInventory(tx, employeeId, merchId)
 	if err != nil {

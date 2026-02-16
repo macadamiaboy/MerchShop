@@ -29,14 +29,17 @@ func GetMerchPrice(db *sql.DB, id int64) (int, error) {
 	return price, nil
 }
 
-func BuyMerch(db *sql.DB, merchId, userId int64, amount int) error {
+func BuyMerch(db *sql.DB, merchId, userId int64, cost int) error {
 	err := transactions.RunInTx(db, func(tx *sql.Tx) error {
-		if txErr := accounts.WriteOff(tx, userId, amount); txErr != nil {
+
+		if txErr := accounts.WriteOff(tx, userId, cost); txErr != nil {
 			return txErr
 		}
-		if txErr := inventory.BuyInventory(tx, userId, merchId, amount); txErr != nil {
+
+		if txErr := inventory.BuyInventory(tx, userId, merchId); txErr != nil {
 			return txErr
 		}
+
 		return nil
 	})
 

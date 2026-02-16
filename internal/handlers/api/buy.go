@@ -2,37 +2,20 @@ package handlers
 
 import (
 	"database/sql"
-	"encoding/json"
 	"log"
 	"net/http"
 
 	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/accounts"
 	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/merch"
-	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/users"
 	"github.com/macadamiaboy/AvitoMerchShop/internal/helpers/api"
-	"github.com/macadamiaboy/AvitoMerchShop/internal/helpers/auth"
 )
 
 func BuyItemHandler(db *sql.DB, merchId int64) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		token, err := api.GetToken(r)
+		user, err := api.GetUser(r, db)
 		if err != nil {
-			log.Printf("no token provided in header, err: %v", err)
+			log.Printf("cannot get the user by token, err: %v", err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		login, err := auth.GetLoginFromToken(token)
-		if err != nil {
-			log.Printf("provided token is incorrect or has been expired, err: %v", err)
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		user, err := users.GetUserByLogin(db, login)
-		if err != nil {
-			log.Printf("cannot get the user by login, err: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -58,19 +41,13 @@ func BuyItemHandler(db *sql.DB, merchId int64) http.HandlerFunc {
 			return
 		}
 
-		//transaction
-
-		//
-		//
-		//
-
-		response := AuthResponse{
-			Token: token,
-		}
-
-		if err = json.NewEncoder(w).Encode(response); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+		if err := merch.BuyMerch(db, merchId, user.Id, price); err != nil {
+			log.Printf("failed to buy the merch, err: %v", err)
+			http.Error(w, "Failed to buy the merch", http.StatusBadRequest)
 			return
 		}
+
+		w.WriteHeader(http.StatusOK)
+
 	}
 }
