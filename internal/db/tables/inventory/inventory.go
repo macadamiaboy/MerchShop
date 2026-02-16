@@ -14,10 +14,10 @@ type Inventory struct {
 	Quantity   int   `json:"quantity"`
 }
 
-func GetInventory(db *sql.DB, employeeId, merchId int64) (*Inventory, error) {
+func GetInventory(tx *sql.Tx, employeeId, merchId int64) (*Inventory, error) {
 	env := "tables.inventory.GetInventory"
 
-	stmt, err := db.Prepare("SELECT * FROM inventory WHERE employee_id = $1 AND merch_id = $2;")
+	stmt, err := tx.Prepare("SELECT * FROM inventory WHERE employee_id = $1 AND merch_id = $2;")
 	if err != nil {
 		log.Printf("%s: failed to prepare the stmt, err: %v", env, err)
 		return nil, fmt.Errorf("%s: failed to prepare the stmt, err: %w", env, err)
@@ -39,10 +39,10 @@ func GetInventory(db *sql.DB, employeeId, merchId int64) (*Inventory, error) {
 	return &res, nil
 }
 
-func IncreaseQuantity(db *sql.DB, id int64, additionalQuantity int) error {
+func IncreaseQuantity(tx *sql.Tx, id int64, additionalQuantity int) error {
 	env := "tables.inventory.IncreaseQuantity"
 
-	getStmt, err := db.Prepare("SELECT quantity FROM inventory WHERE id = $1;")
+	getStmt, err := tx.Prepare("SELECT quantity FROM inventory WHERE id = $1;")
 	if err != nil {
 		log.Printf("%s: failed to prepare the select stmt, err: %v", env, err)
 		return fmt.Errorf("%s: failed to prepare the select stmt, err: %w", env, err)
@@ -56,7 +56,7 @@ func IncreaseQuantity(db *sql.DB, id int64, additionalQuantity int) error {
 	}
 
 	quantity += additionalQuantity
-	updStmt, err := db.Prepare("UPDATE inventory SET quantity = $2 WHERE id = $1;")
+	updStmt, err := tx.Prepare("UPDATE inventory SET quantity = $2 WHERE id = $1;")
 	if err != nil {
 		log.Printf("%s: failed to prepare the update stmt, err: %v", env, err)
 		return fmt.Errorf("%s: failed to prepare the update stmt, err: %w", env, err)
@@ -71,10 +71,10 @@ func IncreaseQuantity(db *sql.DB, id int64, additionalQuantity int) error {
 	return nil
 }
 
-func CreateInventoryRecord(db *sql.DB, inventory *Inventory) error {
+func CreateInventoryRecord(tx *sql.Tx, inventory *Inventory) error {
 	env := "tables.inventory.CreateInventoryRecord"
 
-	stmt, err := db.Prepare("INSERT INTO inventory(employee_id, merch_id, quantity) VALUES($1, $2, $3);")
+	stmt, err := tx.Prepare("INSERT INTO inventory(employee_id, merch_id, quantity) VALUES($1, $2, $3);")
 	if err != nil {
 		log.Printf("%s: failed to prepare the stmt, err: %v", env, err)
 		return fmt.Errorf("%s: failed to prepare the stmt, err: %w", env, err)
@@ -89,16 +89,16 @@ func CreateInventoryRecord(db *sql.DB, inventory *Inventory) error {
 	return nil
 }
 
-func BuyInventory(db *sql.DB, employeeId, merchId int64, quantity int) error {
+func BuyInventory(tx *sql.Tx, employeeId, merchId int64, quantity int) error {
 	env := "tables.inventory.GetInventory"
 
-	record, err := GetInventory(db, employeeId, merchId)
+	record, err := GetInventory(tx, employeeId, merchId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 
 			//if there's no record with such user and merch, create:
 			inv := Inventory{EmployeeId: employeeId, MerchId: merchId, Quantity: quantity}
-			createErr := CreateInventoryRecord(db, &inv)
+			createErr := CreateInventoryRecord(tx, &inv)
 			if createErr != nil {
 				log.Printf("%s: failed to create the new inv record, err: %v", env, createErr)
 				return fmt.Errorf("%s: failed to create the new inv record, err: %w", env, createErr)
@@ -111,7 +111,7 @@ func BuyInventory(db *sql.DB, employeeId, merchId int64, quantity int) error {
 	}
 
 	//if there is such record, increase the amount of user's merch of this type
-	err = IncreaseQuantity(db, record.Id, quantity)
+	err = IncreaseQuantity(tx, record.Id, quantity)
 	if err != nil {
 		log.Printf("%s: failed to exec the IncreaseQuantity func, err: %v", env, err)
 		return fmt.Errorf("%s: %w", env, err)

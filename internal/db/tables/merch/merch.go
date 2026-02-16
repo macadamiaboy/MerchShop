@@ -4,6 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+
+	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/accounts"
+	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/inventory"
+	"github.com/macadamiaboy/AvitoMerchShop/internal/helpers/transactions"
 )
 
 func GetMerchPrice(db *sql.DB, id int64) (int, error) {
@@ -25,12 +29,16 @@ func GetMerchPrice(db *sql.DB, id int64) (int, error) {
 	return price, nil
 }
 
-func BuyMerch(db *sql.DB, merchId, userId int64) error {
-	//start transaction
+func BuyMerch(db *sql.DB, merchId, userId int64, amount int) error {
+	err := transactions.RunInTx(db, func(tx *sql.Tx) error {
+		if txErr := accounts.WriteOff(tx, userId, amount); txErr != nil {
+			return txErr
+		}
+		if txErr := inventory.BuyInventory(tx, userId, merchId, amount); txErr != nil {
+			return txErr
+		}
+		return nil
+	})
 
-	//write off
-
-	//buy inventory
-
-	return nil
+	return err
 }
