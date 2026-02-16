@@ -24,3 +24,13 @@ func GetMerchPrice(db *sql.DB, id int64) (int, error) {
 
 	return price, nil
 }
+
+func BuyMerch(db *sql.DB, merchId, userId int64) error {
+	//start transaction
+
+	//write off
+
+	//buy inventory
+
+	return nil
+}

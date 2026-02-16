@@ -95,18 +95,22 @@ func BuyInventory(db *sql.DB, employeeId, merchId int64, quantity int) error {
 	record, err := GetInventory(db, employeeId, merchId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+
+			//if there's no record with such user and merch, create:
 			inv := Inventory{EmployeeId: employeeId, MerchId: merchId, Quantity: quantity}
 			createErr := CreateInventoryRecord(db, &inv)
 			if createErr != nil {
 				log.Printf("%s: failed to create the new inv record, err: %v", env, createErr)
 				return fmt.Errorf("%s: failed to create the new inv record, err: %w", env, createErr)
 			}
+			return nil
 		} else {
 			log.Printf("%s: failed to get the inv record, err: %v", env, err)
 			return fmt.Errorf("%s: failed to get the inv record, err: %w", env, err)
 		}
 	}
 
+	//if there is such record, increase the amount of user's merch of this type
 	err = IncreaseQuantity(db, record.Id, quantity)
 	if err != nil {
 		log.Printf("%s: failed to exec the IncreaseQuantity func, err: %v", env, err)
