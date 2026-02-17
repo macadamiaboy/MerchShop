@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+
+	"github.com/macadamiaboy/AvitoMerchShop/internal/helpers/transactions"
 )
 
 func GetBalanceById(db *sql.DB, userId int64) (int, error) {
@@ -70,4 +72,21 @@ func WriteOff(tx *sql.Tx, userId int64, amount int) error {
 	return transaction(tx, userId, amount, env, func(a, b int) int {
 		return a - b
 	})
+}
+
+func Transfer(db *sql.DB, userFrom, userTo int64, amount int) error {
+	err := transactions.RunInTx(db, func(tx *sql.Tx) error {
+
+		if txErr := WriteOff(tx, userFrom, amount); txErr != nil {
+			return txErr
+		}
+
+		if txErr := CreditTo(tx, userTo, amount); txErr != nil {
+			return txErr
+		}
+
+		return nil
+	})
+
+	return err
 }

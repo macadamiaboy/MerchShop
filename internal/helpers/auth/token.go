@@ -7,6 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// to import from env
 var secretSalt = []byte("avitosec")
 
 func GenToken(login string) (string, error) {
