@@ -119,8 +119,8 @@ func initTranfersTable(db *sql.DB) error {
 	err := execStatement(db, `
 	CREATE TABLE IF NOT EXISTS transfers(
 	    id BIGSERIAL PRIMARY KEY,
-		from BIGINT NOT NULL REFERENCES employees(id)
-		to BIGINT NOT NULL REFERENCES employees(id)
+		from BIGINT NOT NULL REFERENCES users(id)
+		to BIGINT NOT NULL REFERENCES users(id)
 	    amount INTEGER);
 	`)
 	if err != nil {
@@ -139,12 +139,12 @@ func initTranfersTable(db *sql.DB) error {
 }
 
 func initInventoryTable(db *sql.DB) error {
-	env := "dbinit.initEventsTable"
+	env := "dbinit.initInventoryTable"
 
 	err := execStatement(db, `
 	CREATE TABLE IF NOT EXISTS inventory(
 	    id BIGSERIAL PRIMARY KEY,
-	    employee_id BIGINT NOT NULL REFERENCES employees(id),
+	    employee_id BIGINT NOT NULL REFERENCES users(id),
 	    merch_id BIGINT NOT NULL REFERENCES merch(id),
 		quantity INTEGER NOT NULL);
 	`)

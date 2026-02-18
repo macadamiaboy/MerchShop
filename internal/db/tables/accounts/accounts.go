@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/transfers"
 	"github.com/macadamiaboy/AvitoMerchShop/internal/helpers/transactions"
 )
 
@@ -82,6 +83,10 @@ func Transfer(db *sql.DB, userFrom, userTo int64, amount int) error {
 		}
 
 		if txErr := CreditTo(tx, userTo, amount); txErr != nil {
+			return txErr
+		}
+
+		if txErr := transfers.CreateTransfer(tx, userFrom, userTo, amount); txErr != nil {
 			return txErr
 		}
 
