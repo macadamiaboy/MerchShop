@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/accounts"
+	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/inventory"
 	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/merch"
 	"github.com/macadamiaboy/AvitoMerchShop/internal/helpers/api"
 )
@@ -41,7 +42,8 @@ func BuyItemHandler(db *sql.DB, merchId int64) http.HandlerFunc {
 			return
 		}
 
-		if err := merch.BuyMerch(db, merchId, user.Id, price); err != nil {
+		var inv *inventory.Inventory
+		if err := merch.BuyMerch(db, merchId, user.Id, price, inv); err != nil {
 			log.Printf("failed to buy the merch, err: %v", err)
 			http.Error(w, "Failed to buy the merch", http.StatusBadRequest)
 			return

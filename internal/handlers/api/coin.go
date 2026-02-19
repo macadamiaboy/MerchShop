@@ -11,7 +11,7 @@ import (
 	"github.com/macadamiaboy/AvitoMerchShop/internal/helpers/api"
 )
 
-type RequestBody struct {
+type sCoinRequest struct {
 	ToUser string `json:"toUser"`
 	Amount int    `json:"amount"`
 }
@@ -25,7 +25,7 @@ func SendCoinHandler(db *sql.DB, merchId int64) http.HandlerFunc {
 			return
 		}
 
-		var requestBody *RequestBody
+		var requestBody *sCoinRequest
 
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&requestBody); err != nil {
@@ -55,8 +55,8 @@ func SendCoinHandler(db *sql.DB, merchId int64) http.HandlerFunc {
 		}
 
 		if err := accounts.Transfer(db, user.Id, receiver.Id, requestBody.Amount); err != nil {
-			log.Printf("failed to buy the merch, err: %v", err)
-			http.Error(w, "Failed to buy the merch", http.StatusBadRequest)
+			log.Printf("failed to send coins, err: %v", err)
+			http.Error(w, "Failed to send coins", http.StatusBadRequest)
 			return
 		}
 

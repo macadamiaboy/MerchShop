@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+
+	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/merch"
 )
 
 type Inventory struct {
@@ -12,6 +14,11 @@ type Inventory struct {
 	EmployeeId int64 `json:"employee_id"`
 	MerchId    int64 `json:"merch_id"`
 	Quantity   int   `json:"quantity"`
+}
+
+type Inv struct {
+	InvType  string `json:"type"`
+	Quantity int    `json:"quantity"`
 }
 
 func GetInventory(tx *sql.Tx, employeeId, merchId int64) (*Inventory, error) {
@@ -89,8 +96,8 @@ func CreateInventoryRecord(tx *sql.Tx, inventory *Inventory) error {
 	return nil
 }
 
-func BuyInventory(tx *sql.Tx, employeeId, merchId int64 /*, quantity int*/) error {
-	env := "tables.inventory.GetInventory"
+func (inv *Inventory) BuyInventory(tx *sql.Tx, employeeId, merchId int64 /*, quantity int*/) error {
+	env := "tables.inventory.BuyInventory"
 
 	//is prepared make purchases in multiple copies
 	quantity := 1
@@ -121,4 +128,39 @@ func BuyInventory(tx *sql.Tx, employeeId, merchId int64 /*, quantity int*/) erro
 	}
 
 	return nil
+}
+
+func GetAllUsersInventory(db *sql.DB, employeeId int64) (*[]Inv, error) {
+	env := "tables.inventory.GetAllUsersInventory"
+
+	rows, err := db.Query("SELECT id, quantity FROM inventory WHERE employee_id = $1;")
+	if err != nil {
+		log.Printf("%s: failed to prepare the stmt, err: %v", env, err)
+		return nil, fmt.Errorf("%s: failed to prepare the stmt, err: %w", env, err)
+	}
+	defer rows.Close()
+
+	var collection []Inv
+	for rows.Next() {
+		var inventory Inventory
+		if err := rows.Scan(&inventory.Id, &inventory.Quantity); err != nil {
+			log.Printf("%s: failed to get the inventory record, err: %v", env, err)
+			return nil, fmt.Errorf("%s: failed to get the inventory record, err: %w", env, err)
+		}
+
+		name, err := merch.GetMerchName(db, inventory.Id)
+		if err != nil {
+			log.Printf("%s: failed to get the merch type, err: %v", env, err)
+			return nil, fmt.Errorf("%s: failed to get the merch type, err: %w", env, err)
+		}
+
+		collection = append(collection, Inv{InvType: name, Quantity: inventory.Quantity})
+	}
+
+	if err = rows.Err(); err != nil {
+		log.Printf("%s: error occured with table rows, err: %v", env, err)
+		return nil, fmt.Errorf("%s: error occured with table rows, err: %w", env, err)
+	}
+
+	return &collection, nil
 }
