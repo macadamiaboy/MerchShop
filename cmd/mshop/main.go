@@ -14,16 +14,10 @@ import (
 )
 
 func main() {
-	//config
-	//dbinit
-	//server config
-	//routing
-	//server start
 
 	//config
 	cfg := config.LoadConfigData()
 	addr := fmt.Sprintf("%s:%v", cfg.Server.Host, cfg.Server.Port)
-	_ = addr
 
 	router := chi.NewRouter()
 

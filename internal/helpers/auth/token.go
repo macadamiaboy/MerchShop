@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/macadamiaboy/AvitoMerchShop/internal/config"
 )
 
-// to import from env
-var secretSalt = []byte("avitosec")
+var secretSalt = []byte(config.LoadConfigData().Auth.SecretSalt)
 
 func GenToken(login string) (string, error) {
 	claims := &jwt.RegisteredClaims{
@@ -35,7 +35,7 @@ func getClaims(tokenString string) (*jwt.RegisteredClaims, error) {
 	}
 }
 
-// not sure if it's necessary
+/*
 func Verify(tokenString string, login string) error {
 	claims, err := getClaims(tokenString)
 	if err != nil {
@@ -52,6 +52,7 @@ func Verify(tokenString string, login string) error {
 
 	return nil
 }
+*/
 
 func GetLoginFromToken(tokenString string) (string, error) {
 	claims, err := getClaims(tokenString)
