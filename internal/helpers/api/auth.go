@@ -23,7 +23,8 @@ func getToken(r *http.Request) (string, error) {
 }
 
 func GetUserId(r *http.Request, db *sql.DB) (int64, error) {
-	env := "helpers.api.auth.GetUser"
+
+	env := "helpers.api.auth.GetUserId"
 
 	token, err := getToken(r)
 	if err != nil {
