@@ -24,13 +24,13 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		token := tokenParts[1]
 
-		login, err := auth.GetLoginFromToken(token)
+		id, err := auth.GetIdFromToken(token)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
+			http.Error(w, "Invalid token", http.StatusUnauthorized)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "login", login)
+		ctx := context.WithValue(r.Context(), "user_id", id)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

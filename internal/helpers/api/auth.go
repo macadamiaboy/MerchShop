@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/users"
 	"github.com/macadamiaboy/AvitoMerchShop/internal/helpers/auth"
 )
 
@@ -23,7 +22,6 @@ func getToken(r *http.Request) (string, error) {
 }
 
 func GetUserId(r *http.Request, db *sql.DB) (int64, error) {
-
 	env := "helpers.api.auth.GetUserId"
 
 	token, err := getToken(r)
@@ -32,17 +30,11 @@ func GetUserId(r *http.Request, db *sql.DB) (int64, error) {
 		return 0, fmt.Errorf("%s: no token provided in header, err: %w", env, err)
 	}
 
-	login, err := auth.GetLoginFromToken(token)
+	id, err := auth.GetIdFromToken(token)
 	if err != nil {
 		log.Printf("provided token is incorrect or has been expired, err: %v", err)
 		return 0, fmt.Errorf("%s: provided token is incorrect or has been expired, err: %w", env, err)
 	}
 
-	user, err := users.GetUserByLogin(db, login)
-	if err != nil {
-		log.Printf("cannot get the user by login, err: %v", err)
-		return 0, fmt.Errorf("%s: cannot get the user by login, err: %w", env, err)
-	}
-
-	return user.Id, nil
+	return id, nil
 }

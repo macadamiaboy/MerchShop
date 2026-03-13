@@ -67,7 +67,7 @@ func AuthHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		token, err := auth.GenToken(user.Login)
+		token, err := auth.GenToken(curUser.Id)
 		if err != nil {
 			log.Printf("failed to create the token, err: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)

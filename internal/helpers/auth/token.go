@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -10,11 +11,11 @@ import (
 
 var secretSalt = []byte(config.LoadConfigData().Auth.SecretSalt)
 
-func GenToken(login string) (string, error) {
+func GenToken(id int64) (string, error) {
 	claims := &jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(12 * time.Hour)),
 		Issuer:    "MerchShop",
-		Subject:   login,
+		Subject:   strconv.FormatInt(id, 10),
 		IssuedAt:  jwt.NewNumericDate(time.Now()),
 	}
 
@@ -54,15 +55,17 @@ func Verify(tokenString string, login string) error {
 }
 */
 
-func GetLoginFromToken(tokenString string) (string, error) {
+func GetIdFromToken(tokenString string) (int64, error) {
 	claims, err := getClaims(tokenString)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
 	if claims.ExpiresAt.Before(time.Now()) {
-		return "", fmt.Errorf("The token has expired")
+		return 0, fmt.Errorf("The token has expired")
 	}
 
-	return claims.Subject, nil
+	res, err := strconv.ParseInt(claims.Subject, 10, 64)
+
+	return res, nil
 }
