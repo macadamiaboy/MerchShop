@@ -16,7 +16,7 @@ type sCoinRequest struct {
 	Amount int    `json:"amount"`
 }
 
-func SendCoinHandler(db *sql.DB, merchId int64) http.HandlerFunc {
+func SendCoinHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user, err := api.GetUser(r, db)
 		if err != nil {

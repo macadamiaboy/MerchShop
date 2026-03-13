@@ -7,8 +7,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-//may fall because of auth part in yaml
-
 type Config struct {
 	Server struct {
 		Host        string `yaml:"host"`
@@ -28,9 +26,13 @@ type Config struct {
 	Log struct {
 		Level string `yaml:"level"`
 	} `yaml:"log"`
+
+	Auth struct {
+		SecretSalt string `yaml:"secret_salt"`
+	} `yaml:"auth"`
 }
 
-func LoadDBConfigData() *Config {
+func LoadConfigData() *Config {
 	configPath := os.Getenv("CONFIG_PATH")
 	if configPath == "" {
 		log.Fatal("CONFIG_PATH is not set")

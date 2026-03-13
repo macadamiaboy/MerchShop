@@ -18,7 +18,7 @@ type infoResponse struct {
 	CoinHistory *transfers.CoinHistory `json:"coinHistory"`
 }
 
-func InfoHandler(db *sql.DB, merchId int64) http.HandlerFunc {
+func InfoHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user, err := api.GetUser(r, db)
 		if err != nil {

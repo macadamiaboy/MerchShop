@@ -4,18 +4,27 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"strconv"
 
+	"github.com/go-chi/chi"
 	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/accounts"
 	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/inventory"
 	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/merch"
 	"github.com/macadamiaboy/AvitoMerchShop/internal/helpers/api"
 )
 
-func BuyItemHandler(db *sql.DB, merchId int64) http.HandlerFunc {
+func BuyItemHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user, err := api.GetUser(r, db)
 		if err != nil {
 			log.Printf("cannot get the user by token, err: %v", err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		merchId, err := strconv.ParseInt(chi.URLParam(r, "item"), 10, 64)
+		if err != nil {
+			log.Printf("incorrect merch data provided, err: %v", err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}

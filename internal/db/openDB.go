@@ -13,8 +13,8 @@ type DataBase struct {
 	Connection *sql.DB
 }
 
-func Open() error {
-	const env = "db.Open"
+func Init() error {
+	const env = "db.Init"
 
 	db, err := PrepareDB()
 	if err != nil {
@@ -38,7 +38,7 @@ func Open() error {
 func PrepareDB() (*DataBase, error) {
 	const env = "db.PrepareDB"
 
-	pgConfig := config.LoadDBConfigData()
+	pgConfig := config.LoadConfigData()
 
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%v/%s?sslmode=disable",
 		pgConfig.Database.Username,
