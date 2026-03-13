@@ -20,28 +20,28 @@ type infoResponse struct {
 
 func InfoHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		user, err := api.GetUser(r, db)
+		userId, err := api.GetUserId(r, db)
 		if err != nil {
 			log.Printf("cannot get the user by token, err: %v", err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		balance, err := accounts.GetBalanceById(db, user.Id)
+		balance, err := accounts.GetBalanceById(db, userId)
 		if err != nil {
 			log.Printf("failed to get the balance, err: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		inventory, err := inventory.GetAllUsersInventory(db, user.Id)
+		inventory, err := inventory.GetAllUsersInventory(db, userId)
 		if err != nil {
 			log.Printf("failed to get the inventory, err: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		coinHistory, err := transfers.GetCoinHistory(db, user.Id)
+		coinHistory, err := transfers.GetCoinHistory(db, userId)
 		if err != nil {
 			log.Printf("failed to get the coin history, err: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)

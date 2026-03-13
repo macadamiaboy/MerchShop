@@ -10,7 +10,7 @@ import (
 	"github.com/macadamiaboy/AvitoMerchShop/internal/helpers/auth"
 )
 
-func GetToken(r *http.Request) (string, error) {
+func getToken(r *http.Request) (string, error) {
 	env := "helpers.api.auth.GetToken"
 
 	token := r.Header.Get("Authorization")
@@ -22,26 +22,26 @@ func GetToken(r *http.Request) (string, error) {
 	}
 }
 
-func GetUser(r *http.Request, db *sql.DB) (*users.User, error) {
+func GetUser(r *http.Request, db *sql.DB) (int64, error) {
 	env := "helpers.api.auth.GetUser"
 
-	token, err := GetToken(r)
+	token, err := getToken(r)
 	if err != nil {
 		log.Printf("no token provided in header, err: %v", err)
-		return nil, fmt.Errorf("%s: no token provided in header, err: %w", env, err)
+		return 0, fmt.Errorf("%s: no token provided in header, err: %w", env, err)
 	}
 
 	login, err := auth.GetLoginFromToken(token)
 	if err != nil {
 		log.Printf("provided token is incorrect or has been expired, err: %v", err)
-		return nil, fmt.Errorf("%s: provided token is incorrect or has been expired, err: %w", env, err)
+		return 0, fmt.Errorf("%s: provided token is incorrect or has been expired, err: %w", env, err)
 	}
 
 	user, err := users.GetUserByLogin(db, login)
 	if err != nil {
 		log.Printf("cannot get the user by login, err: %v", err)
-		return nil, fmt.Errorf("%s: cannot get the user by login, err: %w", env, err)
+		return 0, fmt.Errorf("%s: cannot get the user by login, err: %w", env, err)
 	}
 
-	return user, nil
+	return user.Id, nil
 }

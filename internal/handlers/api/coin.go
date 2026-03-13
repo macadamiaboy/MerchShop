@@ -18,7 +18,7 @@ type sCoinRequest struct {
 
 func SendCoinHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		user, err := api.GetUser(r, db)
+		userId, err := api.GetUserId(r, db)
 		if err != nil {
 			log.Printf("cannot get the user by token, err: %v", err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -41,7 +41,7 @@ func SendCoinHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		balance, err := accounts.GetBalanceById(db, user.Id)
+		balance, err := accounts.GetBalanceById(db, userId)
 		if err != nil {
 			log.Printf("failed to get the balance, err: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -54,7 +54,7 @@ func SendCoinHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		if err := accounts.Transfer(db, user.Id, receiver.Id, requestBody.Amount); err != nil {
+		if err := accounts.Transfer(db, userId, receiver.Id, requestBody.Amount); err != nil {
 			log.Printf("failed to send coins, err: %v", err)
 			http.Error(w, "Failed to send coins", http.StatusBadRequest)
 			return

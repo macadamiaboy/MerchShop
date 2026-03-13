@@ -15,7 +15,7 @@ import (
 
 func BuyItemHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		user, err := api.GetUser(r, db)
+		userId, err := api.GetUserId(r, db)
 		if err != nil {
 			log.Printf("cannot get the user by token, err: %v", err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -38,7 +38,7 @@ func BuyItemHandler(db *sql.DB) http.HandlerFunc {
 
 		//is it needed to multiply by the quantity
 
-		balance, err := accounts.GetBalanceById(db, user.Id)
+		balance, err := accounts.GetBalanceById(db, userId)
 		if err != nil {
 			log.Printf("failed to get the balance, err: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -52,7 +52,7 @@ func BuyItemHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		var inv *inventory.Inventory
-		if err := merch.BuyMerch(db, merchId, user.Id, price, inv); err != nil {
+		if err := merch.BuyMerch(db, merchId, userId, price, inv); err != nil {
 			log.Printf("failed to buy the merch, err: %v", err)
 			http.Error(w, "Failed to buy the merch", http.StatusBadRequest)
 			return
