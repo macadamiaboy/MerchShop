@@ -8,6 +8,10 @@ import (
 	"github.com/macadamiaboy/AvitoMerchShop/internal/helpers/auth"
 )
 
+type contextIdKey string
+
+const UserIdKey contextIdKey = "user_id"
+
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
@@ -30,7 +34,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "user_id", id)
+		ctx := context.WithValue(r.Context(), UserIdKey, id)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

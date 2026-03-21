@@ -10,17 +10,28 @@ import (
 	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/accounts"
 	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/inventory"
 	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/merch"
-	"github.com/macadamiaboy/AvitoMerchShop/internal/helpers/api"
+	localMW "github.com/macadamiaboy/AvitoMerchShop/internal/middleware"
 )
 
 func BuyItemHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userId, err := api.GetUserId(r, db)
-		if err != nil {
-			log.Printf("cannot get the user by token, err: %v", err)
-			http.Error(w, err.Error(), http.StatusBadRequest)
+
+		userId, ok := r.Context().Value(localMW.UserIdKey).(int64)
+		if !ok {
+			log.Printf("Cannot assign the user id from the context to int64")
+			http.Error(w, "Internal Error", http.StatusInternalServerError)
 			return
 		}
+
+		// test if the context way works
+		/*
+			userId, err := api.GetUserId(r, db)
+			if err != nil {
+				log.Printf("cannot get the user by token, err: %v", err)
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+		*/
 
 		merchId, err := strconv.ParseInt(chi.URLParam(r, "item"), 10, 64)
 		if err != nil {

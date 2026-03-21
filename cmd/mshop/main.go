@@ -11,6 +11,7 @@ import (
 	"github.com/macadamiaboy/AvitoMerchShop/internal/config"
 	"github.com/macadamiaboy/AvitoMerchShop/internal/db"
 	handlers "github.com/macadamiaboy/AvitoMerchShop/internal/handlers/api"
+	localMW "github.com/macadamiaboy/AvitoMerchShop/internal/middleware"
 )
 
 func main() {
@@ -46,10 +47,15 @@ func main() {
 	}()
 
 	router.Route("/api", func(r chi.Router) {
-		r.Get("/info", handlers.InfoHandler(db.Connection))
-		r.Post("/sendCoin", handlers.SendCoinHandler(db.Connection))
 		r.Post("/auth", handlers.AuthHandler(db.Connection))
-		r.Get("/but/{item}", handlers.BuyItemHandler(db.Connection))
+
+		r.Group(func(r chi.Router) {
+			r.Use(localMW.AuthMiddleware)
+
+			r.Get("/info", handlers.InfoHandler(db.Connection))
+			r.Post("/sendCoin", handlers.SendCoinHandler(db.Connection))
+			r.Get("/but/{item}", handlers.BuyItemHandler(db.Connection))
+		})
 	})
 
 	srv := &http.Server{

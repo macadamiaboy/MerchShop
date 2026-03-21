@@ -20,6 +20,15 @@ type infoResponse struct {
 
 func InfoHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		/*
+			userId, ok := r.Context().Value("user_id").(int64)
+			if !ok {
+				log.Printf("Cannot assign the user id from the context to int64")
+				http.Error(w, "Internal Error", http.StatusInternalServerError)
+				return
+			}
+		*/
+
 		userId, err := api.GetUserId(r, db)
 		if err != nil {
 			log.Printf("cannot get the user by token, err: %v", err)
