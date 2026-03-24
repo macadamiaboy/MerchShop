@@ -13,7 +13,7 @@ type User struct {
 }
 
 func GetUserByLogin(db *sql.DB, login string) (*User, error) {
-	env := "tables.employees.GetUserByLogin"
+	env := "tables.users.GetUserByLogin"
 
 	stmt, err := db.Prepare("SELECT * FROM users WHERE login = $1;")
 	if err != nil {
@@ -35,20 +35,21 @@ func GetUserByLogin(db *sql.DB, login string) (*User, error) {
 	return &res, nil
 }
 
-func CreateUser(db *sql.DB, user *User) error {
-	env := "tables.employees.CreateUser"
+func CreateUser(db *sql.DB, user *User) (int64, error) {
+	env := "tables.users.CreateUser"
 
-	stmt, err := db.Prepare("INSERT INTO users(login, password) VALUES($1, $2);")
+	stmt, err := db.Prepare("INSERT INTO users(login, password) VALUES($1, $2) RETURNING id;")
 	if err != nil {
 		log.Printf("%s: failed to prepare the stmt, err: %v", env, err)
-		return fmt.Errorf("%s: failed to prepare the stmt, err: %w", env, err)
+		return 0, fmt.Errorf("%s: failed to prepare the stmt, err: %w", env, err)
 	}
 
-	_, err = stmt.Exec(user.Login, user.Password)
+	var userId int64
+	err = stmt.QueryRow(user.Login, user.Password).Scan(&userId)
 	if err != nil {
 		log.Printf("%s: unmatched arguments to insert, err: %v", env, err)
-		return fmt.Errorf("%s: unmatched arguments to insert, err: %w", env, err)
+		return 0, fmt.Errorf("%s: unmatched arguments to insert, err: %w", env, err)
 	}
 
-	return nil
+	return userId, nil
 }

@@ -95,3 +95,21 @@ func Transfer(db *sql.DB, userFrom, userTo int64, amount int) error {
 
 	return err
 }
+
+func CreateAccount(db *sql.DB, userId int64) error {
+	env := "tables.accounts.CreateAccount"
+
+	stmt, err := db.Prepare("INSERT INTO accounts(user_id, coins) VALUES($1, $2);")
+	if err != nil {
+		log.Printf("%s: failed to prepare the stmt, err: %v", env, err)
+		return fmt.Errorf("%s: failed to prepare the stmt, err: %w", env, err)
+	}
+
+	_, err = stmt.Exec(userId, 1000)
+	if err != nil {
+		log.Printf("%s: unmatched arguments to insert, err: %v", env, err)
+		return fmt.Errorf("%s: unmatched arguments to insert, err: %w", env, err)
+	}
+
+	return nil
+}

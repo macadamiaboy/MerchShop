@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/accounts"
 	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/users"
 	"github.com/macadamiaboy/AvitoMerchShop/internal/helpers/auth"
 	"github.com/macadamiaboy/AvitoMerchShop/internal/helpers/hash"
@@ -45,13 +46,22 @@ func AuthHandler(db *sql.DB) http.HandlerFunc {
 			Password: password,
 		}
 
+		log.Println("basic job is done")
+
 		curUser, getErr := users.GetUserByLogin(db, user.Login)
 		if getErr != nil {
 			if errors.Is(getErr, sql.ErrNoRows) {
-				createErr := users.CreateUser(db, &user)
+				userId, createErr := users.CreateUser(db, &user)
 				if createErr != nil {
 					log.Printf("failed to create the new user, err: %v", createErr)
 					http.Error(w, createErr.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				accErr := accounts.CreateAccount(db, userId)
+				if accErr != nil {
+					log.Printf("failed to create the new account, err: %v", createErr)
+					http.Error(w, accErr.Error(), http.StatusInternalServerError)
 					return
 				}
 			} else {
@@ -61,11 +71,15 @@ func AuthHandler(db *sql.DB) http.HandlerFunc {
 			}
 		}
 
+		log.Println("finding/creating the user is done")
+
 		if correctPassword := hash.CheckPasswordHash(requestBody.Password, curUser.Password); !correctPassword {
 			log.Printf("incorrect password")
 			http.Error(w, "Incorrect login or passsword", http.StatusUnauthorized)
 			return
 		}
+
+		log.Println("password check is done")
 
 		token, err := auth.GenToken(curUser.Id)
 		if err != nil {
@@ -73,6 +87,8 @@ func AuthHandler(db *sql.DB) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		log.Println("token is generated")
 
 		response := AuthResponse{
 			Token: token,

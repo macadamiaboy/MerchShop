@@ -54,7 +54,7 @@ func main() {
 
 			r.Get("/info", handlers.InfoHandler(db.Connection))
 			r.Post("/sendCoin", handlers.SendCoinHandler(db.Connection))
-			r.Get("/but/{item}", handlers.BuyItemHandler(db.Connection))
+			r.Get("/buy/{item}", handlers.BuyItemHandler(db.Connection))
 		})
 	})
 

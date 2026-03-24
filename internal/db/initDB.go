@@ -39,7 +39,7 @@ func initMerchTable(db *sql.DB) error {
 	err := execStatement(db, `
 	CREATE TABLE IF NOT EXISTS merch(
 	    id BIGSERIAL PRIMARY KEY,
-	    type VARCHAR(30) NOT NULL,
+	    type VARCHAR(30) UNIQUE NOT NULL,
 	    price INTEGER NOT NULL);
 	`)
 	if err != nil {
@@ -119,19 +119,19 @@ func initTranfersTable(db *sql.DB) error {
 	err := execStatement(db, `
 	CREATE TABLE IF NOT EXISTS transfers(
 	    id BIGSERIAL PRIMARY KEY,
-		from BIGINT NOT NULL REFERENCES users(id)
-		to BIGINT NOT NULL REFERENCES users(id)
+		source BIGINT NOT NULL REFERENCES users(id),
+		target BIGINT NOT NULL REFERENCES users(id),
 	    amount INTEGER);
 	`)
 	if err != nil {
 		return fmt.Errorf("%s: %w", env, err)
 	}
 
-	if err = execStatement(db, "CREATE INDEX IF NOT EXISTS idx_sender ON transfers(from);"); err != nil {
+	if err = execStatement(db, "CREATE INDEX IF NOT EXISTS idx_sender ON transfers(source);"); err != nil {
 		return fmt.Errorf("%s: %w", env, err)
 	}
 
-	if err = execStatement(db, "CREATE INDEX IF NOT EXISTS idx_receiver ON transfers(to);"); err != nil {
+	if err = execStatement(db, "CREATE INDEX IF NOT EXISTS idx_receiver ON transfers(target);"); err != nil {
 		return fmt.Errorf("%s: %w", env, err)
 	}
 

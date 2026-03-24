@@ -21,16 +21,16 @@ type CoinHistory struct {
 	Sent     *[]sent     `json:"sent"`
 }
 
-func CreateTransfer(tx *sql.Tx, fromId, toId int64, amount int) error {
+func CreateTransfer(tx *sql.Tx, sourceId, toId int64, amount int) error {
 	env := "tables.employees.CreateUser"
 
-	stmt, err := tx.Prepare("INSERT INTO transfers(from, to, amount) VALUES($1, $2, $3);")
+	stmt, err := tx.Prepare("INSERT INTO transfers(source, target, amount) VALUES($1, $2, $3);")
 	if err != nil {
 		log.Printf("%s: failed to prepare the stmt, err: %v", env, err)
 		return fmt.Errorf("%s: failed to prepare the stmt, err: %w", env, err)
 	}
 
-	_, err = stmt.Exec(fromId, toId, amount)
+	_, err = stmt.Exec(sourceId, toId, amount)
 	if err != nil {
 		log.Printf("%s: unmatched arguments to insert, err: %v", env, err)
 		return fmt.Errorf("%s: unmatched arguments to insert, err: %w", env, err)
@@ -42,7 +42,7 @@ func CreateTransfer(tx *sql.Tx, fromId, toId int64, amount int) error {
 func getSenderTransfers(db *sql.DB, employeeId int64) (*[]sent, error) {
 	env := "tables.inventory.getSenderTransfers"
 
-	rows, err := db.Query("SELECT to, amount FROM transfers WHERE from = $1;", employeeId)
+	rows, err := db.Query("SELECT target, amount FROM transfers WHERE source = $1;", employeeId)
 	if err != nil {
 		log.Printf("%s: failed to prepare the stmt, err: %v", env, err)
 		return nil, fmt.Errorf("%s: failed to prepare the stmt, err: %w", env, err)
@@ -71,7 +71,7 @@ func getSenderTransfers(db *sql.DB, employeeId int64) (*[]sent, error) {
 func getReceiverTransfers(db *sql.DB, employeeId int64) (*[]received, error) {
 	env := "tables.inventory.getReceiverTransfers"
 
-	rows, err := db.Query("SELECT from, amount FROM transfers WHERE to = $1;", employeeId)
+	rows, err := db.Query("SELECT source, amount FROM transfers WHERE target = $1;", employeeId)
 	if err != nil {
 		log.Printf("%s: failed to prepare the stmt, err: %v", env, err)
 		return nil, fmt.Errorf("%s: failed to prepare the stmt, err: %w", env, err)

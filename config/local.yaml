@@ -8,8 +8,8 @@ database:
   username: "postgres"
   password: "password"
   host: "localhost"
-  port: 5433
-  dbname: "merchshop"
+  port: 5434
+  dbname: "mshop"
 
 log:
   level: "info"
