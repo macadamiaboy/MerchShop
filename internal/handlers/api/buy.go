@@ -23,16 +23,6 @@ func BuyItemHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		// test if the context way works
-		/*
-			userId, err := api.GetUserId(r, db)
-			if err != nil {
-				log.Printf("cannot get the user by token, err: %v", err)
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-		*/
-
 		merchId, err := strconv.ParseInt(chi.URLParam(r, "item"), 10, 64)
 		if err != nil {
 			log.Printf("incorrect merch data provided, err: %v", err)

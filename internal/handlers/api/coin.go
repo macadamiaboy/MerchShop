@@ -8,7 +8,7 @@ import (
 
 	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/accounts"
 	"github.com/macadamiaboy/AvitoMerchShop/internal/db/tables/users"
-	"github.com/macadamiaboy/AvitoMerchShop/internal/helpers/api"
+	localMW "github.com/macadamiaboy/AvitoMerchShop/internal/middleware"
 )
 
 type sCoinRequest struct {
@@ -18,19 +18,11 @@ type sCoinRequest struct {
 
 func SendCoinHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		/*
-			userId, ok := r.Context().Value("user_id").(int64)
-			if !ok {
-				log.Printf("Cannot assign the user id from the context to int64")
-				http.Error(w, "Internal Error", http.StatusInternalServerError)
-				return
-			}
-		*/
 
-		userId, err := api.GetUserId(r, db)
-		if err != nil {
-			log.Printf("cannot get the user by token, err: %v", err)
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		userId, ok := r.Context().Value(localMW.UserIdKey).(int64)
+		if !ok {
+			log.Printf("Cannot assign the user id from the context to int64")
+			http.Error(w, "Internal Error", http.StatusInternalServerError)
 			return
 		}
 

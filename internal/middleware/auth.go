@@ -26,7 +26,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		token := tokenParts[1]
+		token := strings.TrimSpace(tokenParts[1])
 
 		id, err := auth.GetIdFromToken(token)
 		if err != nil {

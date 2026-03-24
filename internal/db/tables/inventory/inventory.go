@@ -133,7 +133,7 @@ func (inv *Inventory) BuyInventory(tx *sql.Tx, employeeId, merchId int64 /*, qua
 func GetAllUsersInventory(db *sql.DB, employeeId int64) (*[]Inv, error) {
 	env := "tables.inventory.GetAllUsersInventory"
 
-	rows, err := db.Query("SELECT id, quantity FROM inventory WHERE employee_id = $1;")
+	rows, err := db.Query("SELECT id, quantity FROM inventory WHERE employee_id = $1;", employeeId)
 	if err != nil {
 		log.Printf("%s: failed to prepare the stmt, err: %v", env, err)
 		return nil, fmt.Errorf("%s: failed to prepare the stmt, err: %w", env, err)
