@@ -41,22 +41,29 @@ func AuthHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		user := users.User{
-			Login:    requestBody.Username,
-			Password: password,
-		}
+		//log.Println("basic job is done")
 
-		log.Println("basic job is done")
+		var tokenId int64
 
-		curUser, getErr := users.GetUserByLogin(db, user.Login)
+		curUser, getErr := users.GetUserByLogin(db, requestBody.Username)
 		if getErr != nil {
 			if errors.Is(getErr, sql.ErrNoRows) {
+				log.Println("creating user")
+
+				user := users.User{
+					Login:    requestBody.Username,
+					Password: password,
+				}
+
 				userId, createErr := users.CreateUser(db, &user)
 				if createErr != nil {
 					log.Printf("failed to create the new user, err: %v", createErr)
 					http.Error(w, createErr.Error(), http.StatusInternalServerError)
 					return
 				}
+
+				// save the created user's id
+				tokenId = userId
 
 				accErr := accounts.CreateAccount(db, userId)
 				if accErr != nil {
@@ -69,26 +76,29 @@ func AuthHandler(db *sql.DB) http.HandlerFunc {
 				http.Error(w, getErr.Error(), http.StatusInternalServerError)
 				return
 			}
+		} else {
+			//log.Println("checking the password")
+			if correctPassword := hash.CheckPasswordHash(requestBody.Password, curUser.Password); !correctPassword {
+				log.Printf("incorrect password")
+				http.Error(w, "Incorrect login or passsword", http.StatusUnauthorized)
+				return
+			}
+
+			// save the found user's id
+			tokenId = curUser.Id
 		}
 
-		log.Println("finding/creating the user is done")
+		//log.Println("generating the token")
 
-		if correctPassword := hash.CheckPasswordHash(requestBody.Password, curUser.Password); !correctPassword {
-			log.Printf("incorrect password")
-			http.Error(w, "Incorrect login or passsword", http.StatusUnauthorized)
-			return
-		}
-
-		log.Println("password check is done")
-
-		token, err := auth.GenToken(curUser.Id)
+		// token id is either the id of the user who was created right now or was found in the db by login
+		token, err := auth.GenToken(tokenId)
 		if err != nil {
 			log.Printf("failed to create the token, err: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		log.Println("token is generated")
+		//log.Println("token was generated")
 
 		response := AuthResponse{
 			Token: token,

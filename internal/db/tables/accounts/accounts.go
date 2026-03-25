@@ -10,7 +10,7 @@ import (
 )
 
 func GetBalanceById(db *sql.DB, userId int64) (int, error) {
-	env := "tables.merch.GetBalanceById"
+	env := "tables.accounts.GetBalanceById"
 
 	getStmt, err := db.Prepare("SELECT coins FROM accounts WHERE user_id = $1;")
 	if err != nil {
@@ -44,7 +44,7 @@ func transaction(tx *sql.Tx, userId int64, amount int, env string, action func(i
 
 	balance = action(balance, amount)
 
-	updStmt, err := tx.Prepare("UPDATE merch SET coins = $2 WHERE user_id = $1;")
+	updStmt, err := tx.Prepare("UPDATE accounts SET coins = $2 WHERE user_id = $1;")
 	if err != nil {
 		log.Printf("%s: failed to prepare the update stmt, err: %v", env, err)
 		return fmt.Errorf("%s: failed to prepare the update stmt, err: %w", env, err)
@@ -60,7 +60,7 @@ func transaction(tx *sql.Tx, userId int64, amount int, env string, action func(i
 }
 
 func CreditTo(tx *sql.Tx, userId int64, amount int) error {
-	env := "tables.merch.CreditTo"
+	env := "tables.accounts.CreditTo"
 
 	return transaction(tx, userId, amount, env, func(a, b int) int {
 		return a + b
@@ -68,7 +68,7 @@ func CreditTo(tx *sql.Tx, userId int64, amount int) error {
 }
 
 func WriteOff(tx *sql.Tx, userId int64, amount int) error {
-	env := "tables.merch.WriteOff"
+	env := "tables.accounts.WriteOff"
 
 	return transaction(tx, userId, amount, env, func(a, b int) int {
 		return a - b

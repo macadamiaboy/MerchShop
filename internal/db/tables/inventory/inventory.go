@@ -133,7 +133,7 @@ func (inv *Inventory) BuyInventory(tx *sql.Tx, employeeId, merchId int64 /*, qua
 func GetAllUsersInventory(db *sql.DB, employeeId int64) (*[]Inv, error) {
 	env := "tables.inventory.GetAllUsersInventory"
 
-	rows, err := db.Query("SELECT id, quantity FROM inventory WHERE employee_id = $1;", employeeId)
+	rows, err := db.Query("SELECT merch_id, quantity FROM inventory WHERE employee_id = $1;", employeeId)
 	if err != nil {
 		log.Printf("%s: failed to prepare the stmt, err: %v", env, err)
 		return nil, fmt.Errorf("%s: failed to prepare the stmt, err: %w", env, err)
@@ -143,12 +143,12 @@ func GetAllUsersInventory(db *sql.DB, employeeId int64) (*[]Inv, error) {
 	var collection []Inv
 	for rows.Next() {
 		var inventory Inventory
-		if err := rows.Scan(&inventory.Id, &inventory.Quantity); err != nil {
+		if err := rows.Scan(&inventory.MerchId, &inventory.Quantity); err != nil {
 			log.Printf("%s: failed to get the inventory record, err: %v", env, err)
 			return nil, fmt.Errorf("%s: failed to get the inventory record, err: %w", env, err)
 		}
 
-		name, err := merch.GetMerchName(db, inventory.Id)
+		name, err := merch.GetMerchName(db, inventory.MerchId)
 		if err != nil {
 			log.Printf("%s: failed to get the merch type, err: %v", env, err)
 			return nil, fmt.Errorf("%s: failed to get the merch type, err: %w", env, err)
